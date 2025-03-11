@@ -26,6 +26,13 @@ jobs:
           args: '-no-fail -fmt sarif -out results.sarif -verbose text ./...'
       - name: Annotate SARIF file
         run: python annotate-sarif.py results.sarif > annotated-results.sarif
+      - name: Upload SARIF artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sarif-files
+          path: |
+            results.sarif
+            annotated-results.sarif
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
