@@ -14,18 +14,20 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    input_io = open(sys.argv[1], 'r') if len(sys.argv) > 1 else sys.stdin
+    input_io = open(sys.argv[1], "r") if len(sys.argv) > 1 else sys.stdin
     doc = json.load(input_io)
     for run in doc.get("runs"):
         for rule in run.get("tool").get("driver").get("rules"):
-            if "properties" in rule and "security" in rule.get("properties").get("tags"):
+            if "properties" in rule and "security" in rule.get("properties").get(
+                "tags"
+            ):
                 if "LOW" in rule.get("properties").get("tags"):
-                    rule["properties"]["security-severity"] = 2.0
+                    rule["properties"]["@severity"] = 2.0
                 elif "MEDIUM" in rule.get("properties").get("tags"):
-                    rule["properties"]["security-severity"] = 5.0
+                    rule["properties"]["@severity"] = 5.0
                 elif "HIGH" in rule.get("properties").get("tags"):
-                    rule["properties"]["security-severity"] = 8.0
+                    rule["properties"]["@severity"] = 8.0
                 elif "CRITICAL" in rule.get("properties").get("tags"):
-                    rule["properties"]["security-severity"] = 9.5
+                    rule["properties"]["@severity"] = 9.5
 
     print(json.dumps(doc, indent=2))
