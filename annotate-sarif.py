@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
-# CVSS SCORE RANGE	SEVERITY IN ADVISORY
-# 9.0 - 10.0	Critical
-# 7.0 - 8.9	    High
-# 4.0 - 6.9     Medium
-# 0.1 - 3.9     Low
-
 import json
 import logging
 import sys
+
+CVSS_SCORE_MAP = {
+    "low": "2.0",
+    "medium": "5.0",
+    "high": "8.0",
+    "critical": "9.5",
+}
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
@@ -16,18 +17,21 @@ if __name__ == "__main__":
 
     input_io = open(sys.argv[1], "r") if len(sys.argv) > 1 else sys.stdin
     doc = json.load(input_io)
-    for run in doc.get("runs"):
-        for rule in run.get("tool").get("driver").get("rules"):
-            if "properties" in rule and "security" in rule.get("properties").get(
-                "tags"
-            ):
-                if "LOW" in rule.get("properties").get("tags"):
-                    rule["properties"]["security-severity"] = "2.0"
-                elif "MEDIUM" in rule.get("properties").get("tags"):
-                    rule["properties"]["security-severity"] = "5.0"
-                elif "HIGH" in rule.get("properties").get("tags"):
-                    rule["properties"]["security-severity"] = "8.0"
-                elif "CRITICAL" in rule.get("properties").get("tags"):
-                    rule["properties"]["security-severity"] = "9.5"
+    for run in doc["runs"]:
+        for rule in run["tool"]["driver"]["rules"]:
+            if "properties" in rule and "security" in rule["properties"]["tags"]:
+                for severity, value in CVSS_SCORE_MAP.items():
+                    if severity.upper() in rule["properties"]["tags"]:
+                        rule["properties"]["security-severity"] = value
+                        break
+                if "security-severity" not in rule["properties"]:
+                    logger.error(
+                        "Could not find a CVSS score for rule %s", rule["id"]
+                    )
+            logger.info(
+                "Adding security-severity property %s to rule %s",
+                rule["properties"]["security-severity"],
+                rule["id"],
+            )
 
     print(json.dumps(doc, indent=2))
