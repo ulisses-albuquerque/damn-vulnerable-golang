@@ -149,5 +149,11 @@ func main() {
 		_, _ = io.Copy(os.Stdout, gzr)
 	})
 
+	// Gosec G301: Poor file permissions used when creating a directory
+	if err := os.MkdirAll("/tmp/folder", 0755); err != nil {
+		log.Fatal(err)
+		return
+	}
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
